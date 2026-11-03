@@ -32,8 +32,8 @@ bin/
 ├── n2words.js           # The shipped `n2words` command (package.json `bin`)
 └── lib/                 # Arg parsing, language loading, output rendering
 src/
-├── {lang-code}.js       # Full implementations: one per numerally-distinct variant (59)
-├── {lang-code}.js       # Locale profiles (13): `export * from './{base}.js'` + `variantOf`,
+├── {lang-code}.js       # Full implementations: one per numerally-distinct variant (60)
+├── {lang-code}.js       # Locale profiles (12): `export * from './{base}.js'` + `variantOf`,
 │                         #   overriding only currencyDefaults/toCurrency — see docs/language-layers.md
 ├── {primary-subtag}.js  # Bare-tag aliases (46): `export * from './{target}.js'` + `aliasOf`
 └── utils/

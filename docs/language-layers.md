@@ -76,7 +76,7 @@ toCurrency(42.50,   { currency: 'MAD' })  // 'اثنان وأربعون درهم
 ```
 
 > Status: adopted for every language with a behaviourally-identical
-> numeral clone (English, Spanish) — see
+> numeral clone (English) — see
 > [bare-tag-aliases.md](./bare-tag-aliases.md) for which multi-variant
 > families this does and doesn't apply to, and
 > [currency-vocab.md](./currency-vocab.md) for the matrix layer's own
@@ -179,7 +179,17 @@ knowing before adding a new one:
   (`en-GB`, `en-IN`, and `en-US`/`en-CA` directly, since they don't
   delegate), not worked around per profile.
 
-Both were caught by the same mechanism: a full-tree behavioural diff against
+A third surfaced later in Spanish:
+
+- **A difference in the cardinal itself, however small.** `es-MX` was a
+  profile of `es-ES` until Spain's decimal separator became "coma" while
+  Mexico's stayed "punto" (`3.14` is "tres coma catorce" in Spain, "tres
+  punto catorce" in Mexico). A profile's `toCardinal` must be
+  reference-identical to its base's, so one differing word anywhere in
+  `toCardinal` or `toOrdinal` output means a full implementation. `es-MX`
+  is one now.
+
+The first two were caught by the same mechanism: a full-tree behavioural diff against
 a pre-refactor snapshot (every `toCardinal`/`toOrdinal`/`toCurrency` output
 across ~1,300 probe values, per code) run after every structural change, not
 just at the end. A diff against defaults alone would have missed the first;

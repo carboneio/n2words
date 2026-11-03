@@ -131,7 +131,7 @@ reference.
 |`en-US`|American English|10^66 - 1 [*](#american-english-en-us)|10^66 - 1|10^66 - 1 [*](#american-english-en-us)|
 |`en-ZA`|English (South Africa)|10^66 - 1|10^66 - 1|10^66 - 1 [*](#english-south-africa-en-za)|
 |`es-ES`|European Spanish|10^30 - 1 [*](#european-spanish-es-es)|10^9 - 1 [*](#european-spanish-es-es)|10^30 - 1 [*](#european-spanish-es-es)|
-|`es-MX`|Mexican Spanish|10^30 - 1|10^9 - 1|10^30 - 1 [*](#mexican-spanish-es-mx)|
+|`es-MX`|Mexican Spanish|10^30 - 1 [*](#mexican-spanish-es-mx)|10^9 - 1 [*](#mexican-spanish-es-mx)|10^30 - 1 [*](#mexican-spanish-es-mx)|
 |`es-US`|Spanish (United States)|10^21 - 1 [*](#spanish-united-states-es-us)|10^9 - 1 [*](#spanish-united-states-es-us)|10^21 - 1 [*](#spanish-united-states-es-us)|
 |`fa-IR`|Persian (Iran)|∞|∞|∞ [*](#persian-iran-fa-ir)|
 |`fi-FI`|Finnish (Finland)|10^18 - 1|10^18 - 1|10^18 - 1 [*](#finnish-finland-fi-fi)|
@@ -658,6 +658,8 @@ own defaults.
 
 |Option|Form|Type|Default|Description|
 |------|----|----|-------|-----------|
+|`gender`|cardinal|'feminine' \| 'masculine'|`masculine`|Grammatical gender|
+|`gender`|ordinal|'feminine' \| 'masculine'|`masculine`|Grammatical gender|
 |`and`|currency|`boolean`|`true`|Use "con" between the major and minor unit|
 |`currency`|currency|'EUR' \| 'MXN' \| 'USD'|`MXN`|ISO 4217 currency code to name the amount in|
 
