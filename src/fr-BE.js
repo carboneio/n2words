@@ -55,6 +55,7 @@ const ORDINAL_SUFFIX = 'ième'
 
 // Special ordinals
 const PREMIER = 'premier'
+const PREMIERE = 'première'
 
 // ============================================================================
 // Segment Building
@@ -442,38 +443,61 @@ function cardinalToOrdinal(cardinalWord) {
 /**
  * Converts a positive integer to Belgian French ordinal words.
  * @param {bigint} n - Positive integer
+ * @param {boolean} feminine - Use the feminine form (only "première" differs)
  * @returns {string} Belgian French ordinal words
  */
-function integerToOrdinal(n) {
-  // Special case: 1 → premier
+function integerToOrdinal(n, feminine) {
   if (n === 1n) {
-    return PREMIER
+    return feminine ? PREMIERE : PREMIER
   }
 
-  // Get cardinal form and convert to ordinal
   const cardinalWord = integerToWords(n, false)
+
+  // "un million" is a count; the rank drops the "un", as "mille" gives
+  // "millième": "millionième", "milliardième" (Académie française). With
+  // anything after the scale word the "un" stays: "un million unième".
+  if (cardinalWord.startsWith('un ') && !cardinalWord.includes(' ', 3)) {
+    return cardinalToOrdinal(cardinalWord.slice(3))
+  }
+
   return cardinalToOrdinal(cardinalWord)
 }
+
+/**
+ * @typedef {object} OrdinalOptions
+ * @property {('masculine'|'feminine')} [gender] - Grammatical gender
+ */
+
+/** @type {Required<OrdinalOptions>} */
+export const ordinalDefaults = { gender: 'masculine' }
+
+/** @type {{ gender: ReadonlyArray<Required<OrdinalOptions>['gender']> }} */
+export const ordinalValues = { gender: ['masculine', 'feminine'] }
 
 /**
  * Converts a numeric value to Belgian French ordinal words.
  *
  * Belgian French ordinals: premier (1st), then cardinal + ième.
  * Special rules: quatre→quatrième, cinq→cinquième, neuf→neuvième.
+ * Only "premier"/"première" agrees in gender; every other ordinal is
+ * invariable ("vingt et unième").
  * @param {number | string | bigint} value - The numeric value to convert (positive integer)
+ * @param {OrdinalOptions} [options] - Optional configuration
  * @returns {string} The number as ordinal words
  * @throws {TypeError} If value is not a valid numeric type
  * @throws {RangeError} If value is negative, zero, or has a decimal part
  * @example
  * toOrdinal(1)    // 'premier'
+ * toOrdinal(1, { gender: 'feminine' }) // 'première'
  * toOrdinal(2)    // 'deuxième'
  * toOrdinal(70)   // 'septantième'
  * toOrdinal(90)   // 'nonantième'
  */
-function toOrdinal(value) {
+function toOrdinal(value, options) {
   const integerPart = parseOrdinalValue(value)
   checkMax(integerPart, ordinalMax)
-  return integerToOrdinal(integerPart)
+  const { gender } = resolveOptions(options, ordinalDefaults, ordinalValues)
+  return integerToOrdinal(integerPart, gender === 'feminine')
 }
 
 // ============================================================================
@@ -524,7 +548,17 @@ function toCurrency(value, options) {
   if (euros > 0n || centimes === 0n) {
     result += integerToWords(euros, false)
     // In French, 0 and 1 are singular: "zéro euro", "un euro"
-    result += ' ' + (euros <= 1n ? major[0] : major[1])
+    const unit = euros <= 1n ? major[0] : major[1]
+    // Million, milliard and the scale words above them are nouns, so a round
+    // amount of them takes "de" before what it counts, elided before a vowel:
+    // "un million d'euros", "deux milliards de dinars".
+    if (euros >= 1_000_000n && euros % 1_000_000n === 0n) {
+      result += /^[aeiouyéèê]/.test(unit) ? ' d\'' : ' de '
+    }
+    else {
+      result += ' '
+    }
+    result += unit
   }
 
   // Centimes part
