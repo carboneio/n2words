@@ -3,16 +3,20 @@
  * Format: [input, expected_output, options?]
  */
 export const cardinal = [
-  [0.01, 'null komma null eins'],
-  [1.007, 'eins komma null null sieben'],
-  [1.7, 'eins komma sieben'],
-  [17.42, 'siebzehn komma zweiundvierzig'],
-  [27.312, 'siebenundzwanzig komma dreihundertzwölf'],
-  [53.486, 'dreiundfünfzig komma vierhundertsechsundachtzig'],
-  [300.42, 'dreihundert komma zweiundvierzig'],
-  [4196.42, 'viertausendeinhundertsechsundneunzig komma zweiundvierzig'],
+  [0.01, 'null Komma null eins'],
+  [1.007, 'eins Komma null null sieben'],
+  [1.7, 'eins Komma sieben'],
+  [17.42, 'siebzehn Komma vier zwei'],
+  [27.312, 'siebenundzwanzig Komma drei eins zwei'],
+  [53.486, 'dreiundfünfzig Komma vier acht sechs'],
+  [300.42, 'dreihundert Komma vier zwei'],
+  [4196.42, 'viertausendeinhundertsechsundneunzig Komma vier zwei'],
+  [3.14, 'drei Komma eins vier'],
+  [1.5, 'eins Komma fünf'],
+  ['0.05', 'null Komma null fünf'],
+  ['5.60', 'fünf Komma sechs null'],
 
-  [-17.42, 'minus siebzehn komma zweiundvierzig'],
+  [-17.42, 'minus siebzehn Komma vier zwei'],
   [-1, 'minus eins'],
   [-20, 'minus zwanzig'],
 
@@ -66,6 +70,10 @@ export const cardinal = [
   [7232, 'siebentausendzweihundertzweiunddreißig'],
   [8569, 'achttausendfünfhundertneunundsechzig'],
   [9539, 'neuntausendfünfhundertneununddreißig'],
+  [101_000, 'einhunderteintausend'],
+  [201_000, 'zweihunderteintausend'],
+  [301_005, 'dreihunderteintausendfünf'],
+  [1_201_000, 'eine Million zweihunderteintausend'],
   [1_000_000, 'eine Million'],
   [1_000_001, 'eine Million eins'],
   [4_000_000, 'vier Millionen'],
@@ -150,16 +158,26 @@ export const ordinal = [
   [10000, 'zehntausendste'],
   [12345, 'zwölftausenddreihundertfünfundvierzigste'],
   [99999, 'neunundneunzigtausendneunhundertneunundneunzigste'],
+  [201_000, 'zweihunderteintausendste'],
 
-  // Larger scales
-  [1_000_000, 'eine Millionste'],
+  // Larger scales: a final million+ scale word is one lowercase word with
+  // its multiplier, which drops "ein" only when the scale word stands alone
+  [1_000_000, 'millionste'],
   [1_000_001, 'eine Million erste'],
-  [2_000_000, 'zwei Millionenste'],
-  [1_000_000_000, 'eine Milliardeste'],
-  [1_000_000_000_000, 'eine Billionste'],
+  [1_000_100, 'eine Million einhundertste'],
+  [2_000_000, 'zweimillionste'],
+  [21_000_000, 'einundzwanzigmillionste'],
+  [200_000_000, 'zweihundertmillionste'],
+  [201_000_000, 'zweihunderteinmillionste'],
+  [1_000_000_000, 'milliardste'],
+  [3_000_000_000, 'dreimilliardste'],
+  [1_001_000_000, 'eine Milliarde einmillionste'],
+  [1_002_000_000, 'eine Milliarde zweimillionste'],
+  [1_000_000_000_000, 'billionste'],
+  [1_000_000_000_000_000, 'billiardste'],
 
   // BigInt support
-  [1_000_000_000_000_000_000n, 'eine Trillionste'],
+  [1_000_000_000_000_000_000n, 'trillionste'],
 ]
 
 /**
@@ -178,6 +196,13 @@ export const currency = [
   [100, 'einhundert Euro'],
   [1000, 'eintausend Euro'],
   [1000000, 'eine Million Euro'],
+
+  // A count ending in 01 takes "ein" before the noun, like 1
+  [101, 'einhundertein Euro'],
+  [1001, 'eintausendein Euro'],
+  [201000, 'zweihunderteintausend Euro'],
+  [1000001, 'eine Million ein Euro'],
+  [101.01, 'einhundertein Euro und ein Cent'],
 
   // Cents only
   [0.01, 'ein Cent'],

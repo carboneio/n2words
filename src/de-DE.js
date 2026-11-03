@@ -45,8 +45,8 @@ const SCALES_PLURAL = ['tausend', 'Millionen', 'Milliarden', 'Billionen', 'Billi
 // Supported magnitude ceiling (checked at the public entry points). SCALES is
 // indexed [scaleIndex - 1] starting at 'tausend' (10^3), so segments are
 // [units, then one per SCALES entry] -> ceiling 10^((SCALES.length + 1) * 3) =
-// 10^30. Ordinal (cardinal + suffix) and currency build on the cardinal, and
-// the decimal is spelled via integerToWords, so all share the ceiling.
+// 10^30. Ordinal (cardinal + suffix) and currency build on the cardinal, so
+// all share the ceiling. Decimals are read digit by digit (no ceiling).
 export const cardinalMax = western(SCALES.length)
 export const ordinalMax = western(SCALES.length)
 export const currencyMax = western(SCALES.length)
@@ -54,7 +54,7 @@ export const currencyMax = western(SCALES.length)
 const HUNDRED = 'hundert'
 const ZERO = 'null'
 const NEGATIVE = 'minus'
-const DECIMAL_SEP = 'komma'
+const DECIMAL_SEP = 'Komma'
 
 // ============================================================================
 // Ordinal Vocabulary
@@ -72,6 +72,10 @@ const ORDINAL_TENS = ['', '', 'zwanzigste', 'dreißigste', 'vierzigste', 'fünfz
 
 // Ordinal scale suffixes: -ste for 20+
 const ORDINAL_SUFFIX = 'ste'
+
+// Ordinal stems of the million+ scale words, written lowercase inside one
+// word with their multiplier: Million → zweimillionste, Milliarde → milliardste
+const ORDINAL_SCALE_STEMS = SCALES.map(word => word.toLowerCase().replace(/e$/, ''))
 
 // ============================================================================
 // Segment Building
@@ -149,11 +153,9 @@ function buildSegmentForThousand(n) {
   else if (tens >= 2) {
     result += TENS[tens]
   }
-  else if (ones > 0 && hundreds > 0) {
-    result += ONES[ones]
-  }
   else if (ones > 0) {
-    result += ONES[ones]
+    // "zweihunderteintausend", not "zweihunderteinstausend"
+    result += ones === 1 ? EIN : ONES[ones]
   }
 
   return result
@@ -290,28 +292,18 @@ function joinGermanParts(parts) {
 }
 
 /**
- * Converts decimal digits to German words.
+ * Converts decimal digits to German words, one digit at a time: 3.14 is
+ * "drei Komma eins vier", 0.05 is "null Komma null fünf".
  * @param {string} decimalPart - Decimal digits (without the point)
  * @returns {string} German words for decimal part
  */
 function decimalPartToWords(decimalPart) {
   let result = ''
-
-  // Handle leading zeros
-  let i = 0
-  while (i < decimalPart.length && decimalPart[i] === '0') {
-    if (result) result += ' '
-    result += ZERO
-    i++
+  for (let i = 0; i < decimalPart.length; i++) {
+    const digit = decimalPart.charCodeAt(i) - 48
+    if (i > 0) result += ' '
+    result += digit === 0 ? ZERO : ONES[digit]
   }
-
-  // Convert remainder as a single number
-  const remainder = decimalPart.slice(i)
-  if (remainder) {
-    if (result) result += ' '
-    result += integerToWords(BigInt(remainder))
-  }
-
   return result
 }
 
@@ -328,12 +320,12 @@ function decimalPartToWords(decimalPart) {
  * toCardinal(21)           // 'einundzwanzig'
  * toCardinal(1000)         // 'eintausend'
  * toCardinal(1000000)      // 'eine Million'
+ * toCardinal(3.14)         // 'drei Komma eins vier'
  */
 function toCardinal(value) {
   const { isNegative, integerPart, decimalPart } = parseCardinalValue(value)
-  // Both the integer part and the decimal's significant digits are spelled via
-  // the scale builder, so both must clear the ceiling.
-  checkMax(integerPart, cardinalMax, decimalPart)
+  // The fraction is spelled digit by digit, so only the integer part has a ceiling.
+  checkMax(integerPart, cardinalMax)
 
   let result = ''
 
@@ -485,6 +477,7 @@ function buildLargeOrdinal(n) {
   }
 
   // Convert segments to words
+  /** @type {Array<{words: string, isScale: boolean, scaleLevel: number}>} */
   const parts = []
   let scaleIndex = segments.length - 1
 
@@ -507,6 +500,13 @@ function buildLargeOrdinal(n) {
           parts.push({ words: segWords + SCALES[0], isScale: false, scaleLevel: 1 })
         }
       }
+      else if (isLowestSegment) {
+        // Million+ ordinal: one lowercase word with its multiplier, which
+        // drops "ein" only when the scale word stands alone: "millionste",
+        // "zweimillionste", "eine Milliarde einmillionste"
+        const multiplier = segment === 1 && parts.length === 0 ? '' : buildSegmentForThousand(segment)
+        parts.push({ words: multiplier + ORDINAL_SCALE_STEMS[scaleIndex - 1] + ORDINAL_SUFFIX, isScale: false, scaleLevel: scaleIndex })
+      }
       else {
         // Million+
         let segWords
@@ -518,12 +518,7 @@ function buildLargeOrdinal(n) {
         }
         const scaleWord = segment === 1 ? SCALES[scaleIndex - 1] : SCALES_PLURAL[scaleIndex - 1]
         parts.push({ words: segWords, isScale: false, scaleLevel: scaleIndex })
-        if (isLowestSegment) {
-          parts.push({ words: scaleWord + ORDINAL_SUFFIX, isScale: true, scaleLevel: scaleIndex })
-        }
-        else {
-          parts.push({ words: scaleWord, isScale: true, scaleLevel: scaleIndex })
-        }
+        parts.push({ words: scaleWord, isScale: true, scaleLevel: scaleIndex })
       }
     }
 
@@ -549,6 +544,8 @@ function buildLargeOrdinal(n) {
  * toOrdinal(21)   // 'einundzwanzigste'
  * toOrdinal(100)  // 'einhundertste'
  * toOrdinal(1000) // 'eintausendste'
+ * toOrdinal(1000000) // 'millionste'
+ * toOrdinal(2000000) // 'zweimillionste'
  */
 function toOrdinal(value) {
   const integerPart = parseOrdinalValue(value)
@@ -582,6 +579,7 @@ export const currencyValues = { currency: /** @type {Required<CurrencyOptions>['
  * @example
  * toCurrency(42.50)                 // 'zweiundvierzig Euro und fünfzig Cent'
  * toCurrency(1)                     // 'ein Euro'
+ * toCurrency(101)                   // 'einhundertein Euro'
  * toCurrency(0.99)                  // 'neunundneunzig Cent'
  * toCurrency(0.01)                  // 'ein Cent'
  * toCurrency(42.50, { and: false }) // 'zweiundvierzig Euro fünfzig Cent'
@@ -599,14 +597,7 @@ function toCurrency(value, options) {
 
   // Euros part
   if (euros > 0n || cents === 0n) {
-    // Use "ein" instead of "eins" before Euro
-    if (euros === 1n) {
-      result += EIN
-    }
-    else {
-      result += integerToWords(euros)
-    }
-    result += ' ' + major[0]
+    result += countBeforeNoun(euros) + ' ' + major[0]
   }
 
   // Cents part
@@ -614,17 +605,22 @@ function toCurrency(value, options) {
     if (euros > 0n) {
       result += useAnd ? ' und ' : ' '
     }
-    // Use "ein" instead of "eins" before Cent
-    if (cents === 1n) {
-      result += EIN
-    }
-    else {
-      result += integerToWords(cents)
-    }
-    result += ' ' + (/** @type {string[]} */ (minor))[0]
+    result += countBeforeNoun(cents) + ' ' + (/** @type {string[]} */ (minor))[0]
   }
 
   return result
+}
+
+/**
+ * Spells a count placed before a noun: a final "eins" becomes "ein"
+ * ("ein Euro", "einhundertein Euro", "eine Million ein Euro").
+ * @param {bigint} n - Non-negative integer
+ * @returns {string} German words
+ */
+function countBeforeNoun(n) {
+  const words = integerToWords(n)
+  // Only a number ending in 01 ends in "eins" (21 is "einundzwanzig")
+  return n % 100n === 1n ? words.slice(0, -1) : words
 }
 
 // ============================================================================
