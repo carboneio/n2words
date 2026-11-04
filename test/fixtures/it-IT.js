@@ -73,6 +73,11 @@ export const cardinal = [
   [9539, 'novemilacinquecentotrentanove'],
   [21_747, 'ventunomilasettecentoquarantasette'],
   [27_821, 'ventisettemilaottocentoventuno'],
+  // The accent of "tré" is written only when it ends the word
+  [23_000, 'ventitremila'],
+  [103_000, 'centotremila'],
+  [23_023, 'ventitremilaventitré'],
+  [23_000_000, 'ventitré milioni'],
   [1_000_000, 'un milione'],
   [1_000_000_000, 'un miliardo'],
   [1_000_001, 'un milione e uno'],
@@ -153,16 +158,40 @@ export const ordinal = [
   [10000, 'diecimillesimo'],
   [21000, 'ventunomillesimo'],
   [99999, 'novantanovemilanovecentonovantanovesimo'],
+  [23000, 'ventitremillesimo'],
 
-  // Larger scales
-  [1_000_000, 'un milionesimo'],
+  // "sei" keeps its final vowel
+  [26, 'ventiseiesimo'],
+  [106, 'centoseiesimo'],
+  [1006, 'milleseiesimo'],
+
+  // Larger scales: a final million+ scale word is one word with its
+  // multiplier, which drops "un" as "mille" does
+  [1_000_000, 'milionesimo'],
   [1_000_001, 'un milione e unesimo'],
-  [2_000_000, 'due milionesimo'],
-  [1_000_000_000, 'un miliardiesimo'],
-  [1_000_000_000_000, 'un bilionesimo'],
+  [2_000_000, 'duemilionesimo'],
+  [23_000_000, 'ventitremilionesimo'],
+  [100_000_000, 'centomilionesimo'],
+  [1_000_000_000, 'miliardesimo'],
+  [3_000_000_000, 'tremiliardesimo'],
+  [1_001_000_000, 'un miliardo milionesimo'],
+  [1_002_000_000, 'un miliardo duemilionesimo'],
+  [1_000_000_000_000, 'bilionesimo'],
+  [1_000_000_000_000_000, 'biliardesimo'],
 
   // BigInt support
-  [1_000_000_000_000_000_000n, 'un trilionesimo'],
+  [1_000_000_000_000_000_000n, 'trilionesimo'],
+
+  // Feminine: the final -o becomes -a
+  [1, 'prima', { gender: 'feminine' }],
+  [2, 'seconda', { gender: 'feminine' }],
+  [3, 'terza', { gender: 'feminine' }],
+  [10, 'decima', { gender: 'feminine' }],
+  [21, 'ventunesima', { gender: 'feminine' }],
+  [23, 'ventitreesima', { gender: 'feminine' }],
+  [100, 'centesima', { gender: 'feminine' }],
+  [2_000_000, 'duemilionesima', { gender: 'feminine' }],
+  [1, 'primo', { gender: 'masculine' }],
 ]
 
 /**
@@ -180,7 +209,10 @@ export const currency = [
   [21, 'ventuno euro'],
   [100, 'cento euro'],
   [1000, 'mille euro'],
-  [1000000, 'un milione euro'],
+  [1000000, 'un milione di euro'],
+  [2000000000, 'due miliardi di euro'],
+  [1200000, 'un milione e duecentomila euro'],
+  [23000, 'ventitremila euro'],
 
   // Centesimi only
   [0.01, 'un centesimo'],
@@ -198,7 +230,7 @@ export const currency = [
   [42.50, 'quarantadue euro e cinquanta centesimi'],
   [100.99, 'cento euro e novantanove centesimi'],
   [1000.01, 'mille euro e un centesimo'],
-  [1000000.01, 'un milione euro e un centesimo'],
+  [1000000.01, 'un milione di euro e un centesimo'],
 
   // Negative amounts
   [-1, 'meno un euro'],
@@ -217,5 +249,5 @@ export const currency = [
   ['42.50', 'quarantadue euro e cinquanta centesimi'],
 
   // BigInt (whole euros only)
-  [1000000000000n, 'un bilione euro'],
+  [1000000000000n, 'un bilione di euro'],
 ]
